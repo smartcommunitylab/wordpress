@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "wordpress.fullname" (dict "root" . "component" "php") }}
+  labels:
+    {{- include "wordpress.labels" (dict "root" . "component" "php") | nindent 4 }}
+spec:
+  {{- if not .Values.php.autoscaling.enabled }}
+  replicas: {{ .Values.php.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "wordpress.selectorLabels" (dict "root" . "component" "php") | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+      {{- with .Values.php.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/php-configurations-configmap.yaml") . | sha256sum }}
+      labels:
+        {{- include "wordpress.labels" (dict "root" . "component" "php") | nindent 8 }}
+        {{- with .Values.php.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.php.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "wordpress.serviceAccountName" (dict "root" . "component" "php") }}
+      securityContext:
+        {{- toYaml .Values.php.podSecurityContext | nindent 8 }}
+      containers:
+        - name: php
+          securityContext:
+            {{- toYaml .Values.php.securityContext | nindent 12 }}
+          image: "{{ .Values.php.image.repository }}:{{ .Values.php.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.php.image.pullPolicy }}
+          env:
+            - name:  WORDPRESS_DB_HOST
+            {{- if .Values.wordpress.database.external.enabled }}
+              value: {{ .Values.wordpress.database.external.host | quote }}
+            {{- else }}
+              value: {{ (printf "%s-%s:%s" .Release.Name "mariadb" "3306") | quote }}
+            {{- end }}
+          {{- with .Values.wordpress.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          envFrom:
+            - secretRef:
+                name: {{ .Release.Name }}-db-vars
+          ports:
+            - name: fastcgi
+              containerPort: {{ .Values.php.service.port }}
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.php.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.php.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.php.resources | nindent 12 }}
+          {{- if or .Values.persistence.enabled .Values.php.volumeMounts }}
+          volumeMounts:
+          {{- if .Values.persistence.enabled }}
+            - name: shared-dir
+              mountPath: /var/www/html/
+          {{- end }}
+            - name: custom-php
+              mountPath: /usr/local/etc/php/conf.d/zz-custom-php.ini
+              subPath: zz-custom-php.ini
+            - name: custom-pool
+              mountPath: /usr/local/etc/php-fpm.d/zz-custom-pool.conf
+              subPath: zz-custom-pool.conf
+          {{- with .Values.php.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- end }}
+      {{- if or .Values.persistence.enabled .Values.php.volumes }}
+      volumes:
+      {{- if .Values.persistence.enabled }}
+        - name: shared-dir
+          persistentVolumeClaim:
+            claimName: {{ include "wordpress.pvcName" . }}
+      {{- end }}
+        - name: custom-php
+          configMap:
+            name: php-configurations
+            items:
+              - key: zz-custom-php.ini
+                path: zz-custom-php.ini
+        - name: custom-pool
+          configMap:
+            name: php-configurations
+            items:
+              - key: zz-custom-pool.conf
+                path: zz-custom-pool.conf 
+      {{- with .Values.php.volumes }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      {{- with .Values.php.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.php.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.php.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

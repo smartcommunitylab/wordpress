@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "wordpress.fullname" (dict "root" . "component" "php") }}
+  labels:
+    {{- include "wordpress.labels" (dict "root" . "component" "php") | nindent 4 }}
+spec:
+  type: {{ .Values.php.service.type }}
+  ports:
+    - port: {{ .Values.php.service.port }}
+      targetPort: fastcgi
+      protocol: TCP
+      name: fastcgi
+  selector:
+    {{- include "wordpress.selectorLabels" (dict "root" . "component" "php") | nindent 4 }}

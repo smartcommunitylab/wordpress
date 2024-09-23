@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "wordpress.fullname" (dict "root" . "component" "nginx") }}
+  labels:
+    {{- include "wordpress.labels" (dict "root" . "component" "nginx") | nindent 4 }}
+spec:
+  {{- if not .Values.nginx.autoscaling.enabled }}
+  replicas: {{ .Values.nginx.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "wordpress.selectorLabels" (dict "root" . "component" "nginx") | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+      {{- with .Values.nginx.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/nginx-configurations-configmap.yaml") . | sha256sum }}
+      labels:
+        {{- include "wordpress.labels" (dict "root" . "component" "nginx") | nindent 8 }}
+        {{- with .Values.nginx.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.nginx.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "wordpress.serviceAccountName" (dict "root" . "component" "nginx") }}
+      securityContext:
+        {{- toYaml .Values.nginx.podSecurityContext | nindent 8 }}
+      containers:
+        - name: nginx
+          securityContext:
+            {{- toYaml .Values.nginx.securityContext | nindent 12 }}
+          image: "{{ .Values.nginx.image.repository }}:{{ .Values.nginx.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.nginx.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.nginx.service.port }}
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.nginx.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.nginx.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.nginx.resources | nindent 12 }}
+          {{- if or .Values.persistence.enabled .Values.nginx.volumeMounts }}
+          volumeMounts:
+          {{- if .Values.persistence.enabled }}
+            - name: shared-dir
+              mountPath: /var/www/html/
+          {{- end }}
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d/
+          {{- with .Values.nginx.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- end }}
+      {{- if or .Values.persistence.enabled .Values.nginx.volumes }}
+      volumes:
+      {{- if .Values.persistence.enabled }}
+        - name: shared-dir
+          persistentVolumeClaim:
+            claimName: {{ include "wordpress.pvcName" . }}
+      {{- end }}
+        - name: nginx-conf
+          configMap:
+            name: nginx-configurations
+      {{- with .Values.nginx.volumes }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      {{- with .Values.nginx.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nginx.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nginx.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

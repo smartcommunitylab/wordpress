@@ -1,0 +1,51 @@
+{{- if .Values.debug.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "wordpress.fullname" (dict "root" . "component" "debug") }}
+  labels:
+    {{- include "wordpress.labels" (dict "root" . "component" "debug") | nindent 4 }}
+spec:
+  {{- with .Values.debug.imagePullSecrets }}
+  imagePullSecrets:
+    {{- toYaml . | nindent 8 }}
+  {{- end }}
+  serviceAccountName: {{ include "wordpress.serviceAccountName" (dict "root" . "component" "debug") }}
+  securityContext:
+    {{- toYaml .Values.debug.podSecurityContext | nindent 4 }}
+  containers:
+  - name: debug
+    command: [ "/bin/bash", "-c", "--" ]
+    args: [ "while true; do sleep 30; done;" ]
+    image: "{{ .Values.debug.image.repository }}:{{ .Values.debug.image.tag | default .Chart.AppVersion }}"
+    resources:
+    {{- toYaml .Values.debug.resources | nindent 6 }}
+    imagePullPolicy: {{ .Values.debug.image.pullPolicy }}
+    securityContext:
+    {{- toYaml .Values.debug.securityContext | nindent 6 }}
+    env:
+      - name:  WORDPRESS_DB_HOST
+      {{- if .Values.wordpress.database.external.enabled }}
+        value: {{ .Values.wordpress.database.external.host | quote }}
+      {{- else }}
+        value: {{ (printf "%s-%s:%s" .Release.Name "mariadb" "3306") | quote }}
+      {{- end }}
+    {{- with .Values.wordpress.extraEnv }}
+      {{- toYaml . | nindent 12 }}
+    {{- end }}
+    envFrom:
+      - secretRef:
+          name: {{ .Release.Name }}-db-vars
+    volumeMounts:
+    {{- if .Values.persistence.enabled }}
+      - name: shared-dir
+        mountPath: /var/www/html/
+    {{- end }}
+  volumes:
+  {{- if .Values.persistence.enabled }}
+    - name: shared-dir
+      persistentVolumeClaim:
+        claimName: {{ include "wordpress.pvcName" . }}
+  {{- end }}
+  restartPolicy: Always
+{{- end }}
