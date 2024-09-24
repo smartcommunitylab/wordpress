@@ -1,0 +1,7 @@
+{{- if .Values.jobs.plugins.enabled -}}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-wordpress-plugins-scripts
+data: {{ tpl (.Files.Glob "confs/wordpress/plugins-script.sh").AsConfig . | nindent 2 }}
+{{- end -}}

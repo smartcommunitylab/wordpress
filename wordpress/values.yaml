@@ -29,9 +29,6 @@ wordpress:
       enabled: false
       host: ""
   extraEnv: {}
-  plugins:
-    w3tc:
-      enabled: false
 
 ingress:
   enabled: true
@@ -187,6 +184,11 @@ php:
         - php-fpm-healthcheck # a simple ping since this means it's ready to handle traffic
     initialDelaySeconds: 30
     periodSeconds: 15
+  startupProbe:
+    tcpSocket:
+      port: 9000
+    initialDelaySeconds: 15
+    periodSeconds: 10
   autoscaling:
     enabled: false
     minReplicas: 1
@@ -245,7 +247,6 @@ debug:
   image:
     repository: wordpress
     pullPolicy: IfNotPresent
-    # Overrides the image tag whose default is the chart appVersion.
     tag: "cli-php8.2"
   imagePullSecrets: []
   serviceAccount:
@@ -277,3 +278,55 @@ debug:
     readOnlyRootFilesystem: false
     runAsNonRoot: true
     allowPrivilegeEscalation: false
+
+jobs:
+  initialize:
+    enabled: true
+  update:
+    enabled: true
+    cron: "0 0 * * *"
+    plugins: true
+    themes: true
+    languages: true
+    core: true
+  plugins:
+    enabled: true
+    deleteUnused: true
+    w3tc:
+      enabled: true
+  common:
+    image:
+      repository: wordpress
+      pullPolicy: IfNotPresent
+      tag: "cli-php8.2"
+    imagePullSecrets: []
+    serviceAccount:
+      create: true
+      automount: false
+      annotations: {}
+      name: "debug"
+    resources:
+      limits:
+        memory: "128Mi"
+        cpu: "1"
+      requests:
+        memory: "64Mi"
+        cpu: "100m"
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    podSecurityContext:
+      fsGroup: 82
+      runAsNonRoot: true
+      runAsUser: 82
+      runAsGroup: 82
+    securityContext:
+      seccompProfile:
+        type: RuntimeDefault
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: false
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+

@@ -54,6 +54,8 @@ spec:
             - name: fastcgi
               containerPort: {{ .Values.php.service.port }}
               protocol: TCP
+          startupProbe:
+            {{- toYaml .Values.php.startupProbe | nindent 12 }}
           livenessProbe:
             {{- toYaml .Values.php.livenessProbe | nindent 12 }}
           readinessProbe:

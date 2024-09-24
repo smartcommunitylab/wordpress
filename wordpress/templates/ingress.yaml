@@ -49,11 +49,11 @@ spec:
             backend:
               {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{ $fullName }}-nginx
+                name: {{ include "wordpress.fullname" (dict "root" $ "component" "nginx") }}
                 port:
                   number: {{ $svcPort }}
               {{- else }}
-              serviceName: {{ $fullName }}
+              serviceName: {{ include "wordpress.fullname" (dict "root" $ "component" "nginx") }}
               servicePort: {{ $svcPort }}
               {{- end }}
           {{- end }}

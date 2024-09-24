@@ -2,4 +2,4 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: {{ .Release.Name }}-wordpress-scripts
-data: {{ (.Files.Glob "confs/wordpress/*init-script.sh").AsConfig | nindent 2 }}
+data: {{ tpl (.Files.Glob "confs/wordpress/init-script.sh").AsConfig . | nindent 2 }}

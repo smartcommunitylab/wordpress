@@ -1,14 +1,11 @@
-#!/bin/bash
-
+#!/usr/bin/env bash
+{{- if .Values.jobs.plugins.deleteUnused -}}
 echo "Removing unused plugins..."
 wp plugin delete hello
 wp plugin delete akismet
+{{- end -}}
 
-echo "Removing unused templates"
-wp plugin delete twentytwentythree
-wp plugin delete twentytwentytwo
-
-{{ if and .Values.wordpress.plugins.w3tc.enabled .Values.redis.enabled -}}
+{{ if and .Values.jobs.plugins.w3tc.enabled .Values.redis.enabled }}
 redisHost=${REDIS_HOST}
 redisPort=${REDIS_PORT}
 

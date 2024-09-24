@@ -1,3 +1,4 @@
+{{- if .Values.jobs.initialize.enabled -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -15,10 +16,19 @@ spec:
       labels:
         {{- include "wordpress.labels" (dict "root" . "component" "init-job") | nindent 8 }}
     spec:
+      {{- with .Values.jobs.common.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "wordpress.serviceAccountName" (dict "root" . "component" "php") }}
+      securityContext:
+        {{- toYaml .Values.jobs.common.podSecurityContext | nindent 8 }}
       containers:
       - name: wordpress-init
-        image: wordpress:cli-php8.2
-        command: ['sh', '/etc/init/init-script.sh']
+        securityContext:
+          {{- toYaml .Values.jobs.common.securityContext | nindent 12 }}
+        image: "{{ .Values.jobs.common.image.repository }}:{{ .Values.jobs.common.image.tag | default .Chart.AppVersion }}"
+        command: ['/bin/sh', '/etc/init/init-script.sh']
         env:
           - name:  WORDPRESS_DB_HOST
           {{- if .Values.wordpress.database.external.enabled }}
@@ -33,6 +43,8 @@ spec:
               name: {{ .Release.Name }}-wordpress-site-vars
           - configMapRef:
               name: {{ .Release.Name }}-wordpress-vars
+        resources:
+          {{- toYaml .Values.jobs.common.resources | nindent 12 }}
         volumeMounts:
         {{- if .Values.persistence.enabled }}
           - name: shared-dir
@@ -54,3 +66,4 @@ spec:
                 path: init-script.sh
       restartPolicy: OnFailure
       dnsPolicy: ClusterFirst
+{{- end -}}

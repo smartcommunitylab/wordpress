@@ -1,0 +1,67 @@
+{{- if .Values.jobs.update.enabled -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "wordpress.fullname" (dict "root" . "component" "update-job") }}
+  labels:
+    {{- include "wordpress.labels" (dict "root" . "component" "update-job") | nindent 4 }}
+spec:
+  schedule: {{ .Values.jobs.update.cron }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: {{ include "wordpress.fullname" (dict "root" . "component" "update-job") }}
+          labels:
+            {{- include "wordpress.labels" (dict "root" . "component" "update-job") | nindent 12 }}
+        spec:
+          {{- with .Values.jobs.common.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+          serviceAccountName: {{ include "wordpress.serviceAccountName" (dict "root" . "component" "php") }}
+          securityContext:
+          {{- toYaml .Values.jobs.common.podSecurityContext | nindent 12 }}
+          containers:
+          - name: update
+            securityContext:
+              {{- toYaml .Values.jobs.common.securityContext | nindent 14 }}
+            image: "{{ .Values.jobs.common.image.repository }}:{{ .Values.jobs.common.image.tag | default .Chart.AppVersion }}"
+            args: ['/bin/sh', '/etc/update/update-script.sh']
+            env:
+              - name:  WORDPRESS_DB_HOST
+              {{- if .Values.wordpress.database.external.enabled }}
+                value: {{ .Values.wordpress.database.external.host | quote }}
+              {{- else }}
+                value: {{ (printf "%s-%s:%s" .Release.Name "mariadb" "3306") | quote }}
+              {{- end }}
+            envFrom:
+              - secretRef:
+                  name: {{ .Release.Name }}-db-vars
+              - secretRef:
+                  name: {{ .Release.Name }}-wordpress-site-vars
+              - configMapRef:
+                  name: {{ .Release.Name }}-wordpress-vars
+            resources:
+              {{- toYaml .Values.jobs.common.resources | nindent 14 }}
+            volumeMounts:
+            {{- if .Values.persistence.enabled }}
+              - name: shared-dir
+                mountPath: /var/www/html/
+            {{- end }}
+              - name: update-script
+                mountPath: /etc/update/
+          volumes:
+          {{- if .Values.persistence.enabled }}
+            - name: shared-dir
+              persistentVolumeClaim:
+                claimName: {{ include "wordpress.pvcName" . }}
+          {{- end }}
+            - name: update-script
+              configMap:
+                name: {{ .Release.Name }}-wordpress-update
+                items:
+                  - key: update-script.sh
+                    path: update-script.sh
+          restartPolicy: OnFailure
+{{- end -}}

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 dbName="${WORDPRESS_DB_NAME}"
 dbUser="${WORDPRESS_DB_USER}"
 dbPass="${WORDPRESS_DB_PASSWORD}"
@@ -16,16 +17,16 @@ wp config create --dbname="$dbName" --dbuser="$dbUser" --dbpass="$dbPass" --dbho
 
 echo "Wait until db is ready"
 while true; do
-    wp db check --path=/var/www/html/
-    if [ $? -eq 0 ]; then
-        break
-    fi
-    echo "DB is not ready, retry in 10 seconds" 
-    sleep 10
+  wp db check --path=/var/www/html/
+  if [ $? -eq 0 ]; then
+    break
+  fi
+  echo "DB is not ready, retry in 10 seconds" 
+  sleep 10
 done
 
 echo "Check if wordpress is installed"
 if ! wp core is-installed 2>/dev/null; then
-    echo "WP is not installed. Let's try installing it."
-    wp core install --url="$wpUrl" --title="$wpTitle" --admin_user="$wpAdminUsername" --admin_email="$wpAdminEmail" --skip-email --admin_password="$wpAdminPassword" --path=/var/www/html/
+  echo "WP is not installed. Let's try installing it."
+  wp core install --url="$wpUrl" --title="$wpTitle" --admin_user="$wpAdminUsername" --admin_email="$wpAdminEmail" --skip-email --admin_password="$wpAdminPassword" --path=/var/www/html/
 fi

@@ -1,9 +1,10 @@
+{{- if .Values.jobs.plugins.enabled -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "wordpress.fullname" (dict "root" . "component" "post-init-job") }}
+  name: {{ include "wordpress.fullname" (dict "root" . "component" "plugins") }}
   labels:
-    {{- include "wordpress.labels" (dict "root" . "component" "post-init-job") | nindent 4 }}
+    {{- include "wordpress.labels" (dict "root" . "component" "plugins") | nindent 4 }}
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-weight": "-4"
@@ -11,14 +12,23 @@ metadata:
 spec:
   template:
     metadata:
-      name: {{ include "wordpress.fullname" (dict "root" . "component" "post-init-job") }}
+      name: {{ include "wordpress.fullname" (dict "root" . "component" "plugins") }}
       labels:
-        {{- include "wordpress.labels" (dict "root" . "component" "post-init-job") | nindent 8 }}
+        {{- include "wordpress.labels" (dict "root" . "component" "plugins") | nindent 8 }}
     spec:
+      {{- with .Values.jobs.common.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "wordpress.serviceAccountName" (dict "root" . "component" "php") }}
+      securityContext:
+        {{- toYaml .Values.jobs.common.podSecurityContext | nindent 8 }}
       containers:
-      - name: wordpress-post-init
-        image: wordpress:cli-php8.2
-        command: ['sh', '/etc/post-init/post-init-script.sh']
+      - name: wordpress-plugins
+        securityContext:
+          {{- toYaml .Values.jobs.common.securityContext | nindent 12 }}
+        image: "{{ .Values.jobs.common.image.repository }}:{{ .Values.jobs.common.image.tag | default .Chart.AppVersion }}"
+        command: ['/bin/sh', '/etc/plugins/plugins-script.sh']
         env:
           - name:  WORDPRESS_DB_HOST
           {{- if .Values.wordpress.database.external.enabled }}
@@ -26,7 +36,7 @@ spec:
           {{- else }}
             value: {{ (printf "%s-%s:%s" .Release.Name "mariadb" "3306") | quote }}
           {{- end }}
-          {{- if and .Values.redis.enabled .Values.wordpress.plugins.w3tc.enabled }}
+          {{- if and .Values.redis.enabled .Values.jobs.plugins.w3tc.enabled }}
           - name: REDIS_HOST
             value: {{ (printf "%s-%s" .Release.Name "redis-master") | quote }}
           - name: REDIS_PORT
@@ -39,24 +49,27 @@ spec:
               name: {{ .Release.Name }}-wordpress-site-vars
           - configMapRef:
               name: {{ .Release.Name }}-wordpress-vars
+        resources:
+          {{- toYaml .Values.jobs.common.resources | nindent 12 }}
         volumeMounts:
         {{- if .Values.persistence.enabled }}
           - name: shared-dir
             mountPath: /var/www/html/
         {{- end }}
-          - name: post-init-script
-            mountPath: /etc/post-init/
+          - name: plugins
+            mountPath: /etc/plugins/
       volumes:
       {{- if .Values.persistence.enabled }}
         - name: shared-dir
           persistentVolumeClaim:
             claimName: {{ include "wordpress.pvcName" . }}
       {{- end }}
-        - name: post-init-script
+        - name: plugins
           configMap:
-            name: {{ .Release.Name }}-wordpress-scripts
+            name: {{ .Release.Name }}-wordpress-plugins-scripts
             items:
-              - key: post-init-script.sh
-                path: post-init-script.sh
+              - key: plugins-script.sh
+                path: plugins-script.sh
       restartPolicy: OnFailure
       dnsPolicy: ClusterFirst
+{{- end -}}
