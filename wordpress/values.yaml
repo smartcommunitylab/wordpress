@@ -176,18 +176,18 @@ php:
       command:
         - php-fpm-healthcheck
         - --listen-queue=10 # fails if there are more than 10 processes waiting in the fpm queue
-    initialDelaySeconds: 30
+    initialDelaySeconds: 60
     periodSeconds: 30
   readinessProbe:
     exec:
       command:
         - php-fpm-healthcheck # a simple ping since this means it's ready to handle traffic
-    initialDelaySeconds: 30
+    initialDelaySeconds: 60
     periodSeconds: 15
   startupProbe:
     tcpSocket:
       port: 9000
-    initialDelaySeconds: 15
+    initialDelaySeconds: 60
     periodSeconds: 10
   autoscaling:
     enabled: false
@@ -295,6 +295,7 @@ jobs:
     w3tc:
       enabled: true
   common:
+    ttlSecondsAfterFinished: 86400
     image:
       repository: wordpress
       pullPolicy: IfNotPresent

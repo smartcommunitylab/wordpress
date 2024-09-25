@@ -9,6 +9,7 @@ spec:
   schedule: {{ .Values.jobs.update.cron }}
   jobTemplate:
     spec:
+      ttlSecondsAfterFinished: {{ .Values.jobs.common.ttlSecondsAfterFinished }}
       template:
         metadata:
           name: {{ include "wordpress.fullname" (dict "root" . "component" "update-job") }}
