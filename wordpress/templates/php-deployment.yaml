@@ -31,6 +31,26 @@ spec:
       serviceAccountName: {{ include "wordpress.serviceAccountName" (dict "root" . "component" "php") }}
       securityContext:
         {{- toYaml .Values.php.podSecurityContext | nindent 8 }}
+      {{- if .Values.php.exporter.enabled }}
+      initContainers:
+        - name: php-fpm-exporter
+          restartPolicy: Always
+          securityContext:
+            {{- toYaml .Values.php.exporter.securityContext | nindent 12 }}
+          image: "{{ .Values.php.exporter.image.repository }}:{{ .Values.php.exporter.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.php.exporter.image.pullPolicy }}
+          env:
+            - name: PHP_FPM_SCRAPE_URI
+              value: {{ print "tcp://127.0.0.1:9000" .Values.php.poolConfigOverride.pmStatusPath | quote }}
+            - name: PHP_FPM_WEB_LISTEN_ADDRESS
+              value: "0.0.0.0:9253"
+          resources:
+            {{- toYaml .Values.php.exporter.resources | nindent 12 }}
+          ports:
+            - name: metrics
+              containerPort: 9253
+              protocol: TCP
+      {{- end }}
       containers:
         - name: php
           securityContext:

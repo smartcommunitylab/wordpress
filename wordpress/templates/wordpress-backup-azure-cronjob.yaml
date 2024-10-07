@@ -1,0 +1,89 @@
+{{- if .Values.jobs.backup.azure.enabled -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "wordpress.fullname" (dict "root" . "component" "backup-azure") }}
+  labels:
+    {{- include "wordpress.labels" (dict "root" . "component" "backup-azure") | nindent 4 }}
+spec:
+  schedule: {{ .Values.jobs.backup.cron }}
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: {{ .Values.jobs.common.ttlSecondsAfterFinished }}
+      template:
+        metadata:
+          name: {{ include "wordpress.fullname" (dict "root" . "component" "backup-azure") }}
+          labels:
+            {{- include "wordpress.labels" (dict "root" . "component" "backup-azure") | nindent 12 }}
+        spec:
+          {{- with .Values.jobs.common.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+          serviceAccountName: {{ include "wordpress.serviceAccountName" (dict "root" . "component" "jobs") }}
+          securityContext:
+          {{- toYaml .Values.jobs.common.podSecurityContext | nindent 12 }}
+          initContainers:
+          - name: backup
+            securityContext:
+              {{- toYaml .Values.jobs.common.securityContext | nindent 14 }}
+            image: "{{ .Values.jobs.common.image.repository }}:{{ .Values.jobs.common.image.tag | default .Chart.AppVersion }}"
+            args: ['/bin/sh', '/etc/backup/backup-script.sh']
+            env:
+              - name:  WORDPRESS_DB_HOST
+              {{- if .Values.wordpress.database.external.enabled }}
+                value: {{ .Values.wordpress.database.external.host | quote }}
+              {{- else }}
+                value: {{ (printf "%s-%s:%s" .Release.Name "mariadb" "3306") | quote }}
+              {{- end }}
+            envFrom:
+              - secretRef:
+                  name: {{ .Release.Name }}-db-vars
+              - secretRef:
+                  name: {{ .Release.Name }}-wordpress-site-vars
+              - configMapRef:
+                  name: {{ .Release.Name }}-wordpress-vars
+            resources:
+              {{- toYaml .Values.jobs.backup.azure.resources | nindent 14 }}
+            volumeMounts:
+            {{- if .Values.persistence.enabled }}
+              - name: shared-dir
+                mountPath: /var/www/html/
+            {{- end }}
+              - name: backup-script
+                mountPath: /etc/backup/
+              - name: backup-dir
+                mountPath: /mnt/backup-dir
+          containers:
+          - name: azure-upload
+            securityContext:
+              {{- toYaml .Values.jobs.common.securityContext | nindent 14 }}
+            image: "{{ .Values.jobs.backup.azure.image.repository }}:{{ .Values.jobs.backup.azure.image.tag | default .Chart.AppVersion }}"
+            command: ["azcopy copy '/mnt/backup-dir/*' ${AZURE_BLOB_URL}/${WORDPRESS_TITLE}${TOKEN} --include-pattern='*.gz' --recursive=true --check-length=false"]
+            envFrom:
+              - secretRef:
+                  name: {{ .Release.Name }}-azure-creds
+              - configMapRef:
+                  name: {{ .Release.Name }}-wordpress-vars
+            resources:
+              {{- toYaml .Values.jobs.backup.azure.resources | nindent 14 }}
+            volumeMounts:
+              - name: backup-dir
+                mountPath: /mnt/backup-dir
+          volumes:
+          {{- if .Values.persistence.enabled }}
+            - name: shared-dir
+              persistentVolumeClaim:
+                claimName: {{ include "wordpress.pvcName" . }}
+          {{- end }}
+            - name: backup-script
+              configMap:
+                name: {{ .Release.Name }}-wordpress-backup
+                items:
+                  - key: backup-script.sh
+                    path: backup-script.sh
+            - name: backup-dir
+              emptyDir:
+                sizeLimit: {{ .Values.jobs.backup.tempStorageSize }}
+          restartPolicy: OnFailure
+{{- end -}}

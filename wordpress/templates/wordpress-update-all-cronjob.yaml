@@ -20,7 +20,7 @@ spec:
           imagePullSecrets:
             {{- toYaml . | nindent 10 }}
           {{- end }}
-          serviceAccountName: {{ include "wordpress.serviceAccountName" (dict "root" . "component" "php") }}
+          serviceAccountName: {{ include "wordpress.serviceAccountName" (dict "root" . "component" "jobs") }}
           securityContext:
           {{- toYaml .Values.jobs.common.podSecurityContext | nindent 12 }}
           containers:

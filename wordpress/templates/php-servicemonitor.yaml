@@ -1,0 +1,19 @@
+{{- if .Values.php.exporter.serviceMonitor.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    {{- include "wordpress.labels" (dict "root" . "component" "php-service-monitor") | nindent 4 }}
+  name: {{ include "wordpress.fullname" (dict "root" . "component" "php-service-monitor") }}
+spec:
+  endpoints:
+  - interval: 30s
+    port: metrics
+    path: /metrics
+  namespaceSelector:
+    matchNames:
+    - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      {{- include "wordpress.selectorLabels" (dict "root" . "component" "php") | nindent 6 }}
+{{- end -}}

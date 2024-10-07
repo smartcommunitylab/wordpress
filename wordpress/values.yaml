@@ -134,6 +134,7 @@ php:
     pmStartServers: "6"
     pmMinSpareServers: "6"
     pmMaxSpareServers: "18"
+    pmStatusPath: /status
   image:
     repository: smartcommunitylab/wordpress
     pullPolicy: IfNotPresent
@@ -176,18 +177,18 @@ php:
       command:
         - php-fpm-healthcheck
         - --listen-queue=10 # fails if there are more than 10 processes waiting in the fpm queue
-    initialDelaySeconds: 60
+    initialDelaySeconds: 25
     periodSeconds: 30
   readinessProbe:
     exec:
       command:
         - php-fpm-healthcheck # a simple ping since this means it's ready to handle traffic
-    initialDelaySeconds: 60
+    initialDelaySeconds: 25
     periodSeconds: 15
   startupProbe:
     tcpSocket:
       port: 9000
-    initialDelaySeconds: 60
+    initialDelaySeconds: 25
     periodSeconds: 10
   autoscaling:
     enabled: false
@@ -209,6 +210,31 @@ php:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+  exporter:
+    enabled: true
+    image:
+      repository: smartcommunitylab/php-fpm_exporter
+      pullPolicy: IfNotPresent
+      # Overrides the image tag whose default is the chart appVersion.
+      tag: "nonroot"
+    serviceMonitor:
+      enabled: true
+    securityContext:
+      seccompProfile:
+        type: RuntimeDefault
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+    resources: 
+      limits:
+        memory: "64Mi"
+        cpu: "200m"
+      requests:
+        memory: "32Mi"
+        cpu: "100m"
 
 mariadb:
   enabled: true
@@ -238,6 +264,9 @@ redis:
   architecture: standalone
   auth:
     enabled: false
+    sentinel: false
+    existingSecret: ""
+    existingSecretPasswordKey: ""
   master:
     persistence:
       enabled: false
@@ -280,11 +309,35 @@ debug:
     allowPrivilegeEscalation: false
 
 jobs:
+  serviceAccount:
+    create: true
+    automount: false
+    annotations: {}
+    name: "jobs"
   initialize:
     enabled: true
+  backup:
+    cron: "0 0 * * *"
+    tempStorageSize: 1024Mi
+    azure:
+      enabled: true
+      image:
+        repository: peterdavehello/azcopy
+        tag: 10
+      resources:
+        limits:
+          memory: "4096Mi"
+          cpu: "1"
+        requests:
+          memory: "64Mi"
+          cpu: "100m"
+    s3:
+      enabled: false
+    pvc:
+      enabled: false
   update:
     enabled: true
-    cron: "0 0 * * *"
+    cron: "0 1 * * *"
     plugins: true
     themes: true
     languages: true
@@ -308,7 +361,7 @@ jobs:
       name: "debug"
     resources:
       limits:
-        memory: "128Mi"
+        memory: "256Mi"
         cpu: "1"
       requests:
         memory: "64Mi"

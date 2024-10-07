@@ -11,5 +11,11 @@ spec:
       targetPort: fastcgi
       protocol: TCP
       name: fastcgi
+{{- if .Values.php.exporter.enabled }}
+    - port: 9253
+      targetPort: 9253
+      protocol: TCP
+      name: metrics
+{{- end }}
   selector:
     {{- include "wordpress.selectorLabels" (dict "root" . "component" "php") | nindent 4 }}

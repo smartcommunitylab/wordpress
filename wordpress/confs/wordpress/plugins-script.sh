@@ -3,6 +3,7 @@
 echo "Removing unused plugins..."
 wp plugin delete hello
 wp plugin delete akismet
+wp plugin delete linkpreview
 {{- end -}}
 
 {{ if and .Values.jobs.plugins.w3tc.enabled .Values.redis.enabled }}

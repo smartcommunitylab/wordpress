@@ -1,0 +1,7 @@
+{{- if or .Values.jobs.backup.azure.enabled .Values.jobs.backup.s3.enabled .Values.jobs.backup.pvc.enabled -}}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-wordpress-backup
+data: {{ tpl (.Files.Glob "confs/wordpress/backup-script.sh").AsConfig . | nindent 2 }}
+{{- end -}}
