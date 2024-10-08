@@ -59,7 +59,15 @@ spec:
             securityContext:
               {{- toYaml .Values.jobs.common.securityContext | nindent 14 }}
             image: "{{ .Values.jobs.backup.azure.image.repository }}:{{ .Values.jobs.backup.azure.image.tag | default .Chart.AppVersion }}"
-            command: ["azcopy copy '/mnt/backup-dir/*' ${AZURE_BLOB_URL}/${WORDPRESS_TITLE}${TOKEN} --include-pattern='*.gz' --recursive=true --check-length=false"]
+            # command: [ "/bin/sh", "-c", "--" ]
+            # args: [ "while true; do sleep 30; done;" ]
+            command: [ "/bin/sh", "-c", "--" ]
+            args: ["azcopy cp '/mnt/backup-dir/*' ${AZURE_BLOB_URL}/${WORDPRESS_TITLE}${TOKEN} --include-pattern='*.gz' --recursive=true --check-length=false"]
+            env:
+              - name: AZCOPY_LOG_LOCATION
+                value: /tmp/log
+              - name: AZCOPY_JOB_PLAN_LOCATION
+                value: /tmp/plan
             envFrom:
               - secretRef:
                   name: {{ .Release.Name }}-azure-creds
