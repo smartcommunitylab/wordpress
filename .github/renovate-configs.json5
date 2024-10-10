@@ -1,5 +1,11 @@
 {
   "extends": ["config:best-practices"],
+  "onboarding": false,
+  "platform": "github",
+  "forkProcessing": "enabled",
+  "repositories": [
+    "wordpress"
+  ],
   "packageRules": [
     {
       "enabled": true,
