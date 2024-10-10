@@ -1,0 +1,14 @@
+{
+  "extends": ["config:best-practices"],
+  "packageRules": [
+    {
+      "enabled": true,
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ]
+    }
+  ],
+}

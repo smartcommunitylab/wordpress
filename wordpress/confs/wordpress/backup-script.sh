@@ -7,7 +7,7 @@ wp maintenance-mode activate
 
 echo "Database backup in progress.."
 wp db export --single-transaction "/mnt/backup-dir/${WORDPRESS_TITLE}-${NOW}-${RND}.sql"
-tar -vczf "/mnt/backup-dir/${WORDPRESS_TITLE}-${NOW}-${RND}-db.tar.gz" "."
+tar -vczf "/mnt/backup-dir/${WORDPRESS_TITLE}-${NOW}-${RND}-db.tar.gz" "/mnt/backup-dir/${WORDPRESS_TITLE}-${NOW}-${RND}.sql"
 echo "Database backup in complete.."
 echo "Wordpress backup in progress.."
 tar -vczf "/mnt/backup-dir/${WORDPRESS_TITLE}-${NOW}-${RND}-site.tar.gz" "."

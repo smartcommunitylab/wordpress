@@ -3,23 +3,23 @@ fullnameOverride: ""
 
 persistence:
   enabled: true
-  storageClassName: "rook-cephfs" #ReadWriteMany support
+  storageClassName: "" #ReadWriteMany support
   size: "10Gi"
   existingPvc: ""
 
 wordpress:
-  url: &url "wp-test.wordpress.smartcommunitylab.it"
-  title: "wp-test"
+  url: &url ""
+  title: ""
   admin:
-    username: "admin"
-    password: "admin"
-    email: "wp-test@test.local"
+    username: ""
+    password: ""
+    email: ""
   database:
-    name: "wptest"
-    tablePrefix: "test"
+    name: "wp"
+    tablePrefix: "wp_"
     auth:
-      username: "admin"
-      password: "admin"
+      username: ""
+      password: ""
       existingSecret:
         enabled: false
         name: ""
@@ -34,15 +34,15 @@ ingress:
   enabled: true
   className: "nginx"
   annotations: 
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+    # nginx.ingress.kubernetes.io/proxy-body-size: "100m"
   hosts:
     - host: *url
       paths:
         - path: /
           pathType: ImplementationSpecific
   tls:
-    - secretName: wp-cert
+    - secretName: ""
       hosts:
         - *url
 
@@ -177,19 +177,18 @@ php:
       command:
         - php-fpm-healthcheck
         - --listen-queue=10 # fails if there are more than 10 processes waiting in the fpm queue
-    initialDelaySeconds: 25
-    periodSeconds: 30
+    periodSeconds: 123
   readinessProbe:
     exec:
       command:
         - php-fpm-healthcheck # a simple ping since this means it's ready to handle traffic
-    initialDelaySeconds: 25
-    periodSeconds: 15
+    initialDelaySeconds: 23
+    periodSeconds: 60
   startupProbe:
     tcpSocket:
       port: 9000
-    initialDelaySeconds: 25
-    periodSeconds: 10
+    failureThreshold: 30
+    periodSeconds: 12
   autoscaling:
     enabled: false
     minReplicas: 1
@@ -247,7 +246,7 @@ mariadb:
       limits:
         cpu: 3
         memory: 1024Mi
-    extraEnvVarsSecret: "wp-test-db-vars"
+    extraEnvVarsSecret: "db-vars"
     persistence:
       enabled: true
       existingClaim: ""
@@ -326,7 +325,7 @@ jobs:
         tag: 10
       resources:
         limits:
-          memory: "4096Mi"
+          memory: "1024Mi"
           cpu: "1"
         requests:
           memory: "64Mi"

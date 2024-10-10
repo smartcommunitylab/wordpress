@@ -35,7 +35,7 @@ spec:
     {{- end }}
     envFrom:
       - secretRef:
-          name: {{ .Release.Name }}-db-vars
+          name: db-vars
     volumeMounts:
     {{- if .Values.persistence.enabled }}
       - name: shared-dir

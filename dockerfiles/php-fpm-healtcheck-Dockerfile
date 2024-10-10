@@ -1,0 +1,8 @@
+FROM wordpress:6.6.1-php8.2-fpm-alpine
+RUN apk add --no-cache fcgi
+
+# Enable php fpm status page
+RUN set -xe && echo "pm.status_path = /status" >> /usr/local/etc/php-fpm.d/zz-docker.conf
+
+# Source https://github.com/renatomefi/php-fpm-healthcheck
+COPY --chmod=0755 ./dockerfiles/php-fpm-healthcheck /usr/local/bin/
