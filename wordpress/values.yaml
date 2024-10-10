@@ -59,7 +59,7 @@ nginx:
     repository: nginxinc/nginx-unprivileged
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "alpine"
+    tag: "alpine@sha256:cf998f0d01644f219ba93374491336bad1b6c964ac975d3e19d2ea81dd8dc526"
   imagePullSecrets: []
   podAnnotations: {}
   podLabels: {}
@@ -139,7 +139,7 @@ php:
     repository: smartcommunitylab/wordpress
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "redis-latest"
+    tag: "redis-latest@sha256:8ee422f3f8120e561b4a1171023caf98f27b0564e3d53dd2ede145543f35c629"
   imagePullSecrets: []
   serviceAccount:
     create: true
@@ -215,7 +215,7 @@ php:
       repository: smartcommunitylab/php-fpm_exporter
       pullPolicy: IfNotPresent
       # Overrides the image tag whose default is the chart appVersion.
-      tag: "nonroot"
+      tag: "nonroot@sha256:f4877d0a763181ca7ce83a81dab2d01d09f9158e33ea4ab40f44886043685773"
     serviceMonitor:
       enabled: true
     securityContext:
@@ -275,7 +275,7 @@ debug:
   image:
     repository: wordpress
     pullPolicy: IfNotPresent
-    tag: "cli-php8.2"
+    tag: "cli-php8.2@sha256:f32e6e44227fe18c31e29240631847acefe27a67f3a0d1b77d71fb5f00da1e1c"
   imagePullSecrets: []
   serviceAccount:
     create: true
@@ -322,7 +322,7 @@ jobs:
       enabled: true
       image:
         repository: peterdavehello/azcopy
-        tag: 10
+        tag: 10@sha256:19258b5bac77efce2c589bb3d8b606bab142ca83bcdc8ab8728414d05d4ec7b6
       resources:
         limits:
           memory: "1024Mi"
@@ -351,7 +351,7 @@ jobs:
     image:
       repository: wordpress
       pullPolicy: IfNotPresent
-      tag: "cli-php8.2"
+      tag: "cli-php8.2@sha256:f32e6e44227fe18c31e29240631847acefe27a67f3a0d1b77d71fb5f00da1e1c"
     imagePullSecrets: []
     serviceAccount:
       create: true
