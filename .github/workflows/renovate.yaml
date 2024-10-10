@@ -1,10 +1,7 @@
 name: Renovate
 on:
   schedule:
-    - cron: "0 * * * *"
-  push:
-    branches:
-      - main
+    - cron: "0 8 * * *"
   workflow_dispatch:
 
 permissions:
