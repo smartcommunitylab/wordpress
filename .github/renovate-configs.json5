@@ -3,9 +3,15 @@
   "onboarding": false,
   "platform": "github",
   "forkProcessing": "enabled",
-  "dockerfile": {
-    "fileMatch": ["(^|/|\.|.*)([Dd]ocker|[Cc]ontainer)file$"]
+  "repositories": [
+    "smartcommunitylab/wordpress"
+  ],
+  "helm": {
+    "enabled": false
   }
+  "dockerfile": {
+    "fileMatch": ["(^|/|\.|\.*)([Dd]ocker|[Cc]ontainer)file$"]
+  },
   "packageRules": [
     {
       "enabled": true,
