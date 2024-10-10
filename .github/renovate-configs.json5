@@ -4,7 +4,7 @@
   "platform": "github",
   "forkProcessing": "enabled",
   "repositories": [
-    "wordpress"
+    "smartcommunitylab/wordpress"
   ],
   "packageRules": [
     {
