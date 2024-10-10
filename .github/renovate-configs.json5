@@ -3,17 +3,14 @@
   "onboarding": false,
   "platform": "github",
   "forkProcessing": "enabled",
-  "repositories": [
-    "smartcommunitylab/wordpress"
-  ],
+  "dockerfile": {
+    "fileMatch": ["(^|/|\.|.*)([Dd]ocker|[Cc]ontainer)file$"]
+  }
   "packageRules": [
     {
       "enabled": true,
       "matchDatasources": [
         "docker"
-      ],
-      "matchUpdateTypes": [
-        "major"
       ]
     }
   ],
