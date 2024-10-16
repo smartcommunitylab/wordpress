@@ -2,7 +2,7 @@ nameOverride: ""
 fullnameOverride: ""
 
 persistence:
-  enabled: true
+  enabled: false
   storageClassName: "" #ReadWriteMany support
   size: "10Gi"
   existingPvc: ""
@@ -31,7 +31,7 @@ wordpress:
   extraEnv: {}
 
 ingress:
-  enabled: true
+  enabled: false
   className: "nginx"
   annotations: 
     # cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -80,13 +80,13 @@ nginx:
   service:
     type: ClusterIP
     port: 8080
-  resources:
-    limits:
-      memory: "1024Mi"
-      cpu: "2"
-    requests:
-      memory: "512Mi"
-      cpu: "512m"
+  resources: {}
+    # limits:
+    #   memory: "1024Mi"
+    #   cpu: "2"
+    # requests:
+    #   memory: "512Mi"
+    #   cpu: "512m"
   livenessProbe:
     httpGet:
       path: /readme.html
@@ -123,7 +123,7 @@ nginx:
 php:
   replicaCount: 1
   iniConfigOverride:
-    memoryLimit: 128M
+    memoryLimit: 256M
     maxExecutionTime: 300
     postMaxSize: 100M
     maxInputTime: 90
@@ -136,10 +136,10 @@ php:
     pmMaxSpareServers: "18"
     pmStatusPath: /status
   image:
-    repository: smartcommunitylab/wordpress
+    repository: wordpress
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "redis-latest"
+    tag: "6.6.2-php8.2-fpm-alpine"
   imagePullSecrets: []
   serviceAccount:
     create: true
@@ -172,18 +172,18 @@ php:
     requests:
       memory: "512Mi"
       cpu: "512m"
-  livenessProbe:
-    exec:
-      command:
-        - php-fpm-healthcheck
-        - --listen-queue=10 # fails if there are more than 10 processes waiting in the fpm queue
-    periodSeconds: 123
-  readinessProbe:
-    exec:
-      command:
-        - php-fpm-healthcheck # a simple ping since this means it's ready to handle traffic
-    initialDelaySeconds: 23
-    periodSeconds: 60
+  livenessProbe: {}
+  #   exec:
+  #     command:
+  #       - php-fpm-healthcheck
+  #       - --listen-queue=10 # fails if there are more than 10 processes waiting in the fpm queue
+  #   periodSeconds: 123
+  readinessProbe: {}
+  #   exec:
+  #     command:
+  #       - php-fpm-healthcheck # a simple ping since this means it's ready to handle traffic
+  #   initialDelaySeconds: 23
+  #   periodSeconds: 60
   startupProbe:
     tcpSocket:
       port: 9000
@@ -210,7 +210,7 @@ php:
   tolerations: []
   affinity: {}
   exporter:
-    enabled: true
+    enabled: false
     image:
       repository: smartcommunitylab/php-fpm_exporter
       pullPolicy: IfNotPresent
@@ -227,25 +227,55 @@ php:
       readOnlyRootFilesystem: true
       runAsNonRoot: true
       allowPrivilegeEscalation: false
-    resources: 
-      limits:
-        memory: "64Mi"
-        cpu: "200m"
-      requests:
-        memory: "32Mi"
-        cpu: "100m"
+    resources: {}
+      # limits:
+      #   memory: "64Mi"
+      #   cpu: "200m"
+      # requests:
+      #   memory: "32Mi"
+      #   cpu: "100m"
 
 mariadb:
   enabled: true
   initdbScriptsConfigMap: "mariadb-init-script-configmap"
   primary:
-    resources:
-      requests:
-        cpu: 1
-        memory: 512Mi
-      limits:
-        cpu: 3
-        memory: 1024Mi
+    configuration: |-
+      [mysqld]
+      skip-name-resolve
+      explicit_defaults_for_timestamp
+      basedir=/opt/bitnami/mariadb
+      datadir=/bitnami/mariadb/data
+      plugin_dir=/opt/bitnami/mariadb/plugin
+      port={{ .Values.primary.containerPorts.mysql }}
+      socket=/opt/bitnami/mariadb/tmp/mysql.sock
+      tmpdir=/opt/bitnami/mariadb/tmp
+      max_allowed_packet=64M
+      bind-address=*
+      pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid
+      log-error=/opt/bitnami/mariadb/logs/mysqld.log
+      character-set-server=UTF8
+      collation-server=utf8_general_ci
+      slow_query_log=0
+      long_query_time=10.0
+      binlog_expire_logs_seconds=2592000
+
+      [client]
+      port=3306
+      socket=/opt/bitnami/mariadb/tmp/mysql.sock
+      default-character-set=UTF8
+      plugin_dir=/opt/bitnami/mariadb/plugin
+
+      [manager]
+      port=3306
+      socket=/opt/bitnami/mariadb/tmp/mysql.sock
+      pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid
+    resources: {}
+      # requests:
+      #   cpu: 1
+      #   memory: 512Mi
+      # limits:
+      #   cpu: 3
+      #   memory: 1024Mi
     extraEnvVarsSecret: "db-vars"
     persistence:
       enabled: true
@@ -282,13 +312,13 @@ debug:
     automount: false
     annotations: {}
     name: "debug"
-  resources:
-    limits:
-      memory: "512Mi"
-      cpu: "1"
-    requests:
-      memory: "64Mi"
-      cpu: "100m"
+  resources: {}
+    # limits:
+    #   memory: "512Mi"
+    #   cpu: "1"
+    # requests:
+    #   memory: "64Mi"
+    #   cpu: "100m"
   nodeSelector: {}
   tolerations: []
   affinity: {}
@@ -317,19 +347,21 @@ jobs:
     enabled: true
   backup:
     cron: "0 0 * * *"
-    tempStorageSize: 1024Mi
+    tempStorageSize: 256Mi
     azure:
-      enabled: true
+      enabled: false
+      # Secret containing AZURE_BLOB_URL and TOKEN variables
+      existingSecret: ""
       image:
         repository: peterdavehello/azcopy
         tag: 10
-      resources:
-        limits:
-          memory: "1024Mi"
-          cpu: "1"
-        requests:
-          memory: "64Mi"
-          cpu: "100m"
+      resources: {}
+        # limits:
+        #   memory: "1024Mi"
+        #   cpu: "1"
+        # requests:
+        #   memory: "64Mi"
+        #   cpu: "100m"
     s3:
       enabled: false
     pvc:
@@ -342,10 +374,10 @@ jobs:
     languages: true
     core: true
   plugins:
-    enabled: true
-    deleteUnused: true
+    enabled: false
+    deleteUnused: false
     w3tc:
-      enabled: true
+      enabled: false
   common:
     ttlSecondsAfterFinished: 86400
     image:
@@ -358,13 +390,13 @@ jobs:
       automount: false
       annotations: {}
       name: "debug"
-    resources:
-      limits:
-        memory: "256Mi"
-        cpu: "1"
-      requests:
-        memory: "64Mi"
-        cpu: "100m"
+    resources: {}
+      # limits:
+      #   memory: "256Mi"
+      #   cpu: "1"
+      # requests:
+      #   memory: "64Mi"
+      #   cpu: "100m"
     nodeSelector: {}
     tolerations: []
     affinity: {}

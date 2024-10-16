@@ -44,6 +44,8 @@ spec:
               value: {{ print "tcp://127.0.0.1:9000" .Values.php.poolConfigOverride.pmStatusPath | quote }}
             - name: PHP_FPM_WEB_LISTEN_ADDRESS
               value: "0.0.0.0:9253"
+            - name: PHP_FPM_FIX_PROCESS_COUNT
+              value: "true"
           resources:
             {{- toYaml .Values.php.exporter.resources | nindent 12 }}
           ports:
@@ -74,12 +76,18 @@ spec:
             - name: fastcgi
               containerPort: {{ .Values.php.service.port }}
               protocol: TCP
+          {{- with .Values.php.startupProbe }}
           startupProbe:
-            {{- toYaml .Values.php.startupProbe | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.php.livenessProbe }}
           livenessProbe:
-            {{- toYaml .Values.php.livenessProbe | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.php.readinessProbe }}
           readinessProbe:
-            {{- toYaml .Values.php.readinessProbe | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.php.resources | nindent 12 }}
           {{- if or .Values.persistence.enabled .Values.php.volumeMounts }}
