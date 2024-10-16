@@ -29,4 +29,5 @@ echo "Check if wordpress is installed"
 if ! wp core is-installed 2>/dev/null; then
   echo "WP is not installed. Let's try installing it."
   wp core install --url="$wpUrl" --title="$wpTitle" --admin_user="$wpAdminUsername" --admin_email="$wpAdminEmail" --skip-email --admin_password="$wpAdminPassword" --path=/var/www/html/
+  wp rewrite structure '/%postname%'
 fi

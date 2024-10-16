@@ -70,7 +70,7 @@ spec:
                 value: /tmp/plan
             envFrom:
               - secretRef:
-                  name: {{ .Release.Name }}-azure-creds
+                  name: {{ .Values.jobs.backup.azure.existingSecret }}
               - configMapRef:
                   name: {{ .Release.Name }}-wordpress-vars
             resources:

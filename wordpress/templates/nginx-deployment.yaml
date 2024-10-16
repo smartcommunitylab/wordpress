@@ -41,10 +41,14 @@ spec:
             - name: http
               containerPort: {{ .Values.nginx.service.port }}
               protocol: TCP
+          {{- with .Values.nginx.livenessProbe }}
           livenessProbe:
-            {{- toYaml .Values.nginx.livenessProbe | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.nginx.readinessProbe }}
           readinessProbe:
-            {{- toYaml .Values.nginx.readinessProbe | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.nginx.resources | nindent 12 }}
           {{- if or .Values.persistence.enabled .Values.nginx.volumeMounts }}
