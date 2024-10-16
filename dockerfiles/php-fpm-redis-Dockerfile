@@ -1,4 +1,4 @@
-FROM wordpress:6.6.2-php8.2-fpm-alpine@sha256:0f5053b3dc9551da2e41c5e071cceffc48e19ee000b5d19d9a38210cb6dd30a2
+FROM wordpress:6.6.2-php8.2-fpm-alpine@sha256:5f7db00fff94d709bc36316ba7759c3ea02b4690f7e37c472ff777f20e4a74e5
 
 RUN apk add --no-cache fcgi
 
