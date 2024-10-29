@@ -1,10 +1,11 @@
 # See https://github.com/helm/chart-testing#configuration
 remote: origin
 target-branch: main
+chart-dirs:
+  - wordpress
 chart-repos:
   - bitnami=https://charts.bitnami.com/bitnami
 helm-extra-args: --timeout 600s
-
 additional-commands:
   - sh -ec "if [ -f '{{ .Path }}/ci/lint.sh' ]; then shellcheck '{{ .Path }}/ci/lint.sh'; bash '{{ .Path }}/ci/lint.sh'; fi"
   # - helm unittest --helm3 --strict --file unittests/*.yaml --file 'unittests/**/*.yaml' {{ .Path }}
