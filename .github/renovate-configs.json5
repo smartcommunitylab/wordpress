@@ -6,8 +6,10 @@
   "repositories": [
     "smartcommunitylab/wordpress"
   ],
+  "bumpVersion": "patch",
+  "semanticCommits": "enabled",
   "helm": {
-    "enabled": false
+    "enabled": true
   },
   "dockerfile": {
     "fileMatch": ["(^|/|\.|\.*)([Dd]ocker|[Cc]ontainer)file$"]
