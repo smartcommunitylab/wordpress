@@ -126,7 +126,8 @@ php:
     memoryLimit: 256M
     maxExecutionTime: 300
     postMaxSize: 100M
-    maxInputTime: 90
+    maxInputTime: 300
+    maxInputVars: 3000
     uploadMaxFileSize: 100M
   poolConfigOverride:
     pm: "dynamic"

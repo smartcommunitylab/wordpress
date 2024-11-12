@@ -10,6 +10,7 @@ spec:
   jobTemplate:
     spec:
       ttlSecondsAfterFinished: {{ .Values.jobs.common.ttlSecondsAfterFinished }}
+      backoffLimit: 0
       template:
         metadata:
           name: {{ include "wordpress.fullname" (dict "root" . "component" "update-job") }}
