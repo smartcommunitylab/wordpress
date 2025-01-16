@@ -140,7 +140,7 @@ php:
     repository: wordpress
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "6.7.1-php8.2-fpm-alpine@sha256:47af6ec7a9b085330a3c92fbce30ce7a87c7924be2653574b38b6c43903e6210"
+    tag: "6.7.1-php8.2-fpm-alpine@sha256:7d934b207a23f64a5c472823f3469946342ab3c4ca31739198bdd301d4989fed"
   imagePullSecrets: []
   serviceAccount:
     create: true
