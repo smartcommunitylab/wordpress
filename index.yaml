@@ -3,6 +3,25 @@ entries:
   wordpress:
   - apiVersion: v2
     appVersion: 6.7.2
+    created: "2025-06-03T09:35:54.804644931Z"
+    dependencies:
+    - condition: mariadb.enabled
+      name: mariadb
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 20.5.6
+    - condition: redis.enabled
+      name: redis
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 21.1.5
+    description: A Helm chart for Wordpress on Kubernetes with NGINX and PHP-FPM
+    digest: 78bfedb5ee1d03864400a53cc2c87ded90ebe3721543a312ba3ce1b6e56dec9f
+    name: wordpress
+    type: application
+    urls:
+    - https://github.com/smartcommunitylab/wordpress/releases/download/wordpress-0.1.29/wordpress-0.1.29.tgz
+    version: 0.1.29
+  - apiVersion: v2
+    appVersion: 6.7.2
     created: "2025-05-22T07:17:21.650839336Z"
     dependencies:
     - condition: mariadb.enabled
@@ -533,4 +552,4 @@ entries:
     urls:
     - https://github.com/smartcommunitylab/wordpress/releases/download/wordpress-0.1.1/wordpress-0.1.1.tgz
     version: 0.1.1
-generated: "2025-05-22T07:17:21.650974855Z"
+generated: "2025-06-03T09:35:54.805203539Z"
