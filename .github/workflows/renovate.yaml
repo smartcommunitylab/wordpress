@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Get token
         id: get_token
-        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2
+        uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2
         with:
           private-key: ${{ secrets.private_key }}
           app-id: ${{ secrets.app_id }}
