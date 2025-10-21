@@ -2,11 +2,11 @@ apiVersion: v2
 name: wordpress
 description: A Helm chart for Wordpress on Kubernetes with NGINX and PHP-FPM
 type: application
-version: 0.1.36
+version: 0.1.37
 appVersion: "6.7.2"
 dependencies:
   - name: mariadb
-    version: "23.1.1"
+    version: "23.2.1"
     repository: oci://registry-1.docker.io/bitnamicharts
     condition: mariadb.enabled
   - name: redis
