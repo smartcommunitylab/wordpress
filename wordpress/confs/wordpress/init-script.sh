@@ -21,7 +21,7 @@ while true; do
   if [ $? -eq 0 ]; then
     break
   fi
-  echo "DB is not ready, retry in 10 seconds" 
+  echo "DB is not ready, retry in 10 seconds"
   sleep 10
 done
 
@@ -30,4 +30,7 @@ if ! wp core is-installed 2>/dev/null; then
   echo "WP is not installed. Let's try installing it."
   wp core install --url="$wpUrl" --title="$wpTitle" --admin_user="$wpAdminUsername" --admin_email="$wpAdminEmail" --skip-email --admin_password="$wpAdminPassword" --path=/var/www/html/
   wp rewrite structure '/%postname%'
+  wp option update default_pingback_flag closed
+  wp option update default_ping_status closed
+  wp option update default_comment_status closed
 fi
