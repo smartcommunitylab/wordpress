@@ -53,6 +53,9 @@ spec:
             {{- end }}
               - name: update-script
                 mountPath: /etc/update/
+              - name: custom-php
+                mountPath: /usr/local/etc/php/conf.d/zz-custom-php.ini
+                subPath: zz-custom-php.ini
           volumes:
           {{- if .Values.persistence.enabled }}
             - name: shared-dir
@@ -65,5 +68,11 @@ spec:
                 items:
                   - key: update-script.sh
                     path: update-script.sh
+            - name: custom-php
+              configMap:
+                name: php-configurations
+                items:
+                  - key: zz-custom-php.ini
+                    path: zz-custom-php.ini
           restartPolicy: OnFailure
 {{- end -}}

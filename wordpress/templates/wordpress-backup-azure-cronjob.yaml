@@ -54,6 +54,9 @@ spec:
                 mountPath: /etc/backup/
               - name: backup-dir
                 mountPath: /mnt/backup-dir
+              - name: custom-php
+                mountPath: /usr/local/etc/php/conf.d/zz-custom-php.ini
+                subPath: zz-custom-php.ini
           containers:
           - name: azure-upload
             securityContext:
@@ -90,6 +93,12 @@ spec:
                 items:
                   - key: backup-script.sh
                     path: backup-script.sh
+            - name: custom-php
+              configMap:
+                name: php-configurations
+                items:
+                  - key: zz-custom-php.ini
+                    path: zz-custom-php.ini
             - name: backup-dir
               emptyDir:
                 sizeLimit: {{ .Values.jobs.backup.tempStorageSize }}
