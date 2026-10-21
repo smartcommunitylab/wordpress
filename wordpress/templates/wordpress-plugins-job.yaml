@@ -58,6 +58,9 @@ spec:
         {{- end }}
           - name: plugins
             mountPath: /etc/plugins/
+          - name: custom-php
+            mountPath: /usr/local/etc/php/conf.d/zz-custom-php.ini
+            subPath: zz-custom-php.ini
       volumes:
       {{- if .Values.persistence.enabled }}
         - name: shared-dir
@@ -70,6 +73,12 @@ spec:
             items:
               - key: plugins-script.sh
                 path: plugins-script.sh
+        - name: custom-php
+          configMap:
+            name: php-configurations
+            items:
+              - key: zz-custom-php.ini
+                path: zz-custom-php.ini
       restartPolicy: OnFailure
       dnsPolicy: ClusterFirst
 {{- end -}}
